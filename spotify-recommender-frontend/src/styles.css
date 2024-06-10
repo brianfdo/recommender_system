@@ -1,0 +1,17 @@
+/* styles.css */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+.mr-2 {
+    margin-right: 0.5rem;
+}
+
+h5 {
+    margin: 0;
+}
