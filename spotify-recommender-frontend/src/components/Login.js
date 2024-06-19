@@ -6,7 +6,7 @@ const Login = () => {
     // const loginUrl = 'http://localhost:5000/login';
 
     const handleLogin = (event) => {
-        event.preventDefault();
+        // event.preventDefault();
         // Handle login logic here
     };
 
