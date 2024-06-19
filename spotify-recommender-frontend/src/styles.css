@@ -2,6 +2,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
+    background-color: #f8f9fa;
 }
 
 .mt-4 {
@@ -14,4 +15,24 @@ body {
 
 h5 {
     margin: 0;
+}
+
+.min-vh-100 {
+    min-height: 100vh;
+}
+
+.card {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card h2 {
+    font-weight: 300;
+}
+
+.form-control {
+    border-radius: 0.25rem;
+}
+
+.btn {
+    border-radius: 0.25rem;
 }
