@@ -1,13 +1,39 @@
-import React from 'react';
-import { Container, Row, Col, Form, Button, Card } from 'react-bootstrap';
-
+import React, { useState, useEffect } from 'react';
+import { Container, Row, Col, Button, Card } from 'react-bootstrap';
+import axios from 'axios';
 
 const Login = () => {
-    // const loginUrl = 'http://localhost:5000/login';
+    const [clientId, setClientId] = useState('');
+    const [redirectUri, setRedirectUri] = useState('');
 
-    const handleLogin = (event) => {
-        // event.preventDefault();
-        // Handle login logic here
+    useEffect(() => {
+        const fetchClientId = async () => {
+            try {
+                console.log('Fetching client ID...');
+                const response = await axios.get('http://localhost:5000/spotify-client-id');
+                console.log('Response:', response.data);
+                setClientId(response.data.CLIENT_ID);
+                setRedirectUri(response.data.REDIRECT_URI);
+            } catch (error) {
+                console.error('Error fetching client ID:', error);
+            }
+        };
+
+        fetchClientId();
+    }, []);
+
+    const handleLogin = () => {
+        const scopes = [
+            'user-read-private',
+            'user-read-email',
+            'playlist-read-private',
+            'playlist-read-collaborative',
+            'user-library-read',
+            'user-top-read'
+        ];
+        const authUrl = `https://accounts.spotify.com/authorize?client_id=${clientId}&response_type=code&redirect_uri=${encodeURIComponent(redirectUri)}&scope=${encodeURIComponent(scopes.join(' '))}`;
+        console.log('Redirecting to:', authUrl);
+        window.location.href = authUrl;
     };
 
     return (
@@ -16,22 +42,10 @@ const Login = () => {
                 <Col md={6} lg={4}>
                     <Card>
                         <Card.Body>
-                            <h2 className="text-center mb-4">Login</h2>
-                            <Form onSubmit={handleLogin}>
-                                <Form.Group controlId="formBasicEmail">
-                                    <Form.Label>Email address</Form.Label>
-                                    <Form.Control type="email" placeholder="Enter email" required />
-                                </Form.Group>
-
-                                <Form.Group controlId="formBasicPassword" className="mt-3">
-                                    <Form.Label>Password</Form.Label>
-                                    <Form.Control type="password" placeholder="Password" required />
-                                </Form.Group>
-
-                                <Button variant="primary" type="submit" className="w-100 mt-4">
-                                    Login
-                                </Button>
-                            </Form>
+                            <h2 className="text-center mb-4">Login to Spotify</h2>
+                            <Button variant="primary" className="w-100 mt-4" onClick={handleLogin} disabled={!clientId}>
+                                Login with Spotify
+                            </Button>
                         </Card.Body>
                     </Card>
                 </Col>

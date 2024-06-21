@@ -1,66 +1,96 @@
-// src/components/Home.js
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Container, Navbar, Nav, ListGroup, Spinner, Button } from 'react-bootstrap';
+import { Container, Row, Col, Card, Button, Alert, Spinner, Navbar, Nav } from 'react-bootstrap';
+import { LinkContainer } from 'react-router-bootstrap';
 
 const Home = () => {
-    const [tracks, setTracks] = useState([]);
+    const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
-    const accessToken = new URLSearchParams(window.location.search).get('access_token');
+    const [error, setError] = useState(null);
 
     useEffect(() => {
         const fetchRecommendations = async () => {
+            const accessToken = localStorage.getItem('spotifyAccessToken');
+
+            if (!accessToken) {
+                setError('No access token found');
+                setLoading(false);
+                return;
+            }
+
+            console.log('Retrieved access token:', accessToken);
+
             try {
-                if (accessToken) {
-                    const response = await axios.get('http://localhost:5000/recommendations', {
-                        params: { access_token: accessToken },
-                    });
-                    setTracks(response.data);
-                }
-            } catch (error) {
-                console.error('Error fetching recommendations:', error.response ? error.response.data : error);
-            } finally {
+                const response = await axios.get('http://localhost:5000/recommendations', {
+                    headers: {
+                        Authorization: `Bearer ${accessToken}`
+                    }
+                });
+
+                console.log("tracks:", response.data);
+                setRecommendations(response.data || []);
+                setLoading(false);
+            } catch (err) {
+                setError('Error fetching recommendations');
                 setLoading(false);
             }
         };
 
         fetchRecommendations();
-    }, [accessToken]);
+    }, []);
+
+    if (loading) return (
+        <Container className="text-center mt-5">
+            <Spinner animation="border" role="status">
+                <span className="visually-hidden">Loading...</span>
+            </Spinner>
+        </Container>
+    );
+
+    if (error) return (
+        <Container className="mt-5">
+            <Alert variant="danger">{error}</Alert>
+        </Container>
+    );
 
     return (
-<div>
+        <>
             <Navbar bg="dark" variant="dark" expand="lg">
-                <Navbar.Brand href="#">Spotify Recommender</Navbar.Brand>
-                <Nav className="mr-auto">
-                    <Nav.Link href="#">Home</Nav.Link>
-                </Nav>
+                <Container>
+                    <Navbar.Brand href="/">Spotify Recommender</Navbar.Brand>
+                    <Navbar.Toggle aria-controls="basic-navbar-nav" />
+                    <Navbar.Collapse id="basic-navbar-nav">
+                        <Nav className="me-auto">
+                            <LinkContainer to="/home">
+                                <Nav.Link>Home</Nav.Link>
+                            </LinkContainer>
+                            {/* Add more links here if needed */}
+                        </Nav>
+                    </Navbar.Collapse>
+                </Container>
             </Navbar>
-            <Container className="mt-4">
-                <h1>Recommended Tracks</h1>
-                {loading ? (
-                    <Spinner animation="border" role="status">
-                        {/* <span className="sr-only">Loading...</span> */}
-                    </Spinner>
-                ) : (
-                    <ListGroup>
-                        {tracks.map((track, index) => (
-                            <ListGroup.Item key={index} className="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5>{track.name}</h5>
-                                    <p>{track.artists.map(artist => artist.name).join(', ')}</p>
-                                </div>
-                                <div>
-                                    <Button variant="primary" className="mr-2">
-                                        Play
+            <Container className="mt-5">
+                <h2>Spotify Recommendations</h2>
+                <Row>
+                    {recommendations.map(track => (
+                        <Col key={track.id} md={4} className="mb-4">
+                            <Card>
+                                <Card.Img variant="top" src={track.album.images[0].url} alt={track.name} />
+                                <Card.Body>
+                                    <Card.Title>{track.name}</Card.Title>
+                                    <Card.Text>
+                                        {track.artists.map(artist => artist.name).join(', ')}
+                                    </Card.Text>
+                                    <Button variant="primary" href={track.external_urls.spotify} target="_blank">
+                                        Listen on Spotify
                                     </Button>
-                                    <Button variant="outline-danger">Like</Button>
-                                </div>
-                            </ListGroup.Item>
-                        ))}
-                    </ListGroup>
-                )}
+                                </Card.Body>
+                            </Card>
+                        </Col>
+                    ))}
+                </Row>
             </Container>
-        </div>
+        </>
     );
 };
 

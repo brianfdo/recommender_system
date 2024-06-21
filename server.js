@@ -27,43 +27,90 @@ app.get('/login', (req, res) => {
     console.log("query params sent to spotify");
 });
 
-app.get('/callback', async (req, res) => {
-    console.log('Callback route hit');
-    const code = req.query.code || null;
-    console.log('Authorization code received:', code);
+app.get('/spotify-client-id', (req, res) => {
+    console.log('GET /spotify-client-id called');
+    res.json({ CLIENT_ID, REDIRECT_URI });
+});
+
+app.post('/callback', async (req, res) => {
+    const { code } = req.body;
+    console.log('POST /callback called with code:', code);
+    console.log(req)
 
     if (!code) {
-        res.status(400).send('No code found in the query parameters');
-        return;
+        console.error('No authorization code provided');
+        return res.status(400).json({ error: 'No authorization code provided' });
     }
 
     try {
-        const response = await axios({
-            method: 'post',
-            url: 'https://accounts.spotify.com/api/token',
-            data: querystring.stringify({
-                grant_type: 'authorization_code',
-                code: code,
-                redirect_uri: REDIRECT_URI,
-            }),
+        const response = await axios.post('https://accounts.spotify.com/api/token', querystring.stringify({
+            grant_type: 'authorization_code',
+            code: code,
+            redirect_uri: REDIRECT_URI,
+            // client_id: CLIENT_ID,
+            // client_secret: CLIENT_SECRET
+        }), {
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
-                Authorization: 'Basic ' + Buffer.from(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'),
-            },
+                Authorization: 'Basic ' + Buffer.from(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64')
+            }
         });
 
-        const { access_token, refresh_token } = response.data;
-        console.log('Access token received:', access_token);
-        res.redirect(`http://localhost:3000/home?access_token=${access_token}&refresh_token=${refresh_token}`);
+        const { access_token } = response.data;
+        // res.redirect(`http://localhost:3000/home?access_token=${access_token}`);
+        res.json({ access_token });
     } catch (error) {
-        console.error('Error during token exchange:', error.response ? error.response.data : error);
-        res.status(500).send('Error during token exchange');
+        console.error('Error fetching access token:', error);
+        res.status(500).json({ error: 'Failed to fetch access token' });
     }
 });
 
-app.get('/recommendations', async (req, res) => {
-    const accessToken = req.query.access_token;
+// app.get('/callback', async (req, res) => {
+//     console.log('Callback route hit');
+//     const code = req.query.code || null;
+//     console.log('Authorization code received:', code);
 
+//     if (!code) {
+//         res.status(400).send('No code found in the query parameters');
+//         return;
+//     }
+
+//     try {
+//         const response = await axios({
+//             method: 'post',
+//             url: 'https://accounts.spotify.com/api/token',
+//             data: querystring.stringify({
+//                 grant_type: 'authorization_code',
+//                 code: code,
+//                 redirect_uri: REDIRECT_URI,
+//             }),
+//             headers: {
+//                 'Content-Type': 'application/x-www-form-urlencoded',
+//                 Authorization: 'Basic ' + Buffer.from(CLIENT_ID + ':' + CLIENT_SECRET).toString('base64'),
+//             },
+//         });
+
+//         const { access_token, refresh_token } = response.data;
+//         console.log('Access token received:', access_token);
+//         res.redirect(`http://localhost:3000/home?access_token=${access_token}&refresh_token=${refresh_token}`);
+//     } catch (error) {
+//         console.error('Error during token exchange:', error.response ? error.response.data : error);
+//         res.status(500).send('Error during token exchange');
+//     }
+// });
+
+app.get('/recommendations', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    console.log("Start", authHeader);
+    if (!authHeader) {
+        return res.status(400).json({ error: 'No authorization header provided' });
+    }
+
+    const accessToken = authHeader.split(' ')[1];
+    if (!accessToken) {
+        return res.status(400).json({ error: 'No access token provided' });
+    }
+    console.log("server recommendations token", accessToken);
     try {
         const response = await axios.get('https://api.spotify.com/v1/me/top/artists', {
             headers: {
@@ -90,6 +137,32 @@ app.get('/recommendations', async (req, res) => {
         res.status(500).send(error.response.data);
     }
 });
+
+app.get('/verify-token', async (req, res) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+        return res.status(400).json({ error: 'No authorization header provided' });
+    }
+
+    const accessToken = authHeader.split(' ')[1];
+    if (!accessToken) {
+        return res.status(400).json({ error: 'No access token provided' });
+    }
+
+    try {
+        const response = await axios.get('https://api.spotify.com/v1/me', {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error verifying access token:', error.response ? error.response.data : error.message);
+        res.status(500).json({ error: 'Failed to verify access token' });
+    }
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

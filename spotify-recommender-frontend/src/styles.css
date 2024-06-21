@@ -1,12 +1,12 @@
 /* styles.css */
 body {
-    margin: 0;
+    margin: 20;
     font-family: Arial, sans-serif;
     /* background-color: #040a03; */
     /* background: rgb(63,94,251);
     background: radial-gradient(circle, rgba(63,94,251,1) 0%, rgba(252,70,107,1) 100%); */
     background: rgb(18,209,26);
-    background: radial-gradient(circle, rgba(18,209,26,1) 0%, rgba(0,0,0,1) 69%);
+    background: radial-gradient(circle, rgba(18,209,26,1) 0%, rgb(221, 217, 217) 69%);
 }
 
 .mt-4 {
