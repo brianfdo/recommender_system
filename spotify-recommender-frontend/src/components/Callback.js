@@ -27,6 +27,7 @@ const Callback = () => {
                 // Store the access token and redirect to home
                 sessionStorage.setItem('spotifyAccessToken', res.access_token);
                 sessionStorage.setItem('spotifyRefreshToken', res.refresh_token);
+                sessionStorage.setItem('tokenExpiration', Date.now() + res.expires_in * 1000);
                 navigate('/home');
             } catch (error) {
                 console.error('Error fetching access token:', error);

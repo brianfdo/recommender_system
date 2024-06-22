@@ -8,9 +8,43 @@ const Home = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
+    const checkTokenExpiry = async () => {
+        const accessToken = sessionStorage.getItem('spotifyAccessToken');
+        const tokenExpiration = sessionStorage.getItem('tokenExpiration');
+    
+        if (!accessToken || Date.now() >= tokenExpiration) {
+            const refreshToken = localStorage.getItem('spotifyRefreshToken');
+    
+            if (!refreshToken) {
+                // Handle case where no refresh token is available
+                throw new Error('No refresh token available');
+            }
+    
+            try {
+                const response = await axios.post('http://localhost:5000/refresh_token', {
+                    refresh_token: refreshToken
+                });
+    
+                const { access_token, expires_in } = response.data;
+    
+                // Update localStorage with new token and expiration
+                sessionStorage.setItem('spotifyAccessToken', access_token);
+                sessionStorage.setItem('tokenExpiration', Date.now() + expires_in * 1000);
+    
+                return access_token;
+            } catch (err) {
+                console.error('Error refreshing token:', err);
+                throw new Error('Error refreshing token');
+            }
+        }
+    
+        return accessToken;
+    };
+    
+
     useEffect(() => {
         const fetchRecommendations = async () => {
-            const accessToken = sessionStorage.getItem('spotifyAccessToken');
+            const accessToken = await checkTokenExpiry();
 
             if (!accessToken) {
                 setError('No access token found');

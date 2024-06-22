@@ -56,9 +56,9 @@ app.post('/callback', async (req, res) => {
             }
         });
 
-        const { access_token, refresh_token } = response.data;
+        const { access_token, refresh_token, expires_in } = response.data;
         // res.redirect(`http://localhost:3000/home?access_token=${access_token}`);
-        res.json({ access_token, refresh_token });
+        res.json({ access_token, refresh_token, expires_in });
     } catch (error) {
         console.error('Error fetching access token:', error);
         res.status(500).json({ error: 'Failed to fetch access token' });
@@ -161,6 +161,26 @@ app.get('/verify-token', async (req, res) => {
         console.error('Error verifying access token:', error.response ? error.response.data : error.message);
         res.status(500).json({ error: 'Failed to verify access token' });
     }
+});
+
+app.post('/refresh_token', async (req, res) => {
+    const { refresh_token } = req.body;
+    
+    try {
+        const response = await axios.post('https://accounts.spotify.com/api/token', querystring.stringify({
+            grant_type: 'refresh_token',
+            refresh_token: refresh_token,
+            client_id: CLIENT_ID,
+            client_secret: CLIENT_SECRET
+        }));
+
+        console.log("refresh response", response.data);
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error verifying refresh token:', error.response ? error.response.data : error.message);
+        res.status(500).json({ error: 'Failed to verify refresh token' });
+    }
+    
 });
 
 
