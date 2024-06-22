@@ -56,9 +56,9 @@ app.post('/callback', async (req, res) => {
             }
         });
 
-        const { access_token } = response.data;
+        const { access_token, refresh_token } = response.data;
         // res.redirect(`http://localhost:3000/home?access_token=${access_token}`);
-        res.json({ access_token });
+        res.json({ access_token, refresh_token });
     } catch (error) {
         console.error('Error fetching access token:', error);
         res.status(500).json({ error: 'Failed to fetch access token' });

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 
 const Callback = () => {
-    const history = useNavigate();
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchAccessToken = async () => {
@@ -21,19 +21,20 @@ const Callback = () => {
                 const response = await axios.post('http://localhost:5000/callback', { code });
                 console.log('Response from /callback:', response.data);
 
-                const accessToken = response.data;
-                console.log('Access token received:', accessToken);
+                const res = response.data;
+                console.log('Access token received:', res);
 
                 // Store the access token and redirect to home
-                localStorage.setItem('spotifyAccessToken', accessToken.access_token);
-                history('/home');
+                sessionStorage.setItem('spotifyAccessToken', res.access_token);
+                sessionStorage.setItem('spotifyRefreshToken', res.refresh_token);
+                navigate('/home');
             } catch (error) {
                 console.error('Error fetching access token:', error);
             }
         };
 
         fetchAccessToken();
-    }, [history]);
+    }, [navigate]);
 
     return (
         <div>

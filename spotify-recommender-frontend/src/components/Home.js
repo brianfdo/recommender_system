@@ -10,7 +10,7 @@ const Home = () => {
 
     useEffect(() => {
         const fetchRecommendations = async () => {
-            const accessToken = localStorage.getItem('spotifyAccessToken');
+            const accessToken = sessionStorage.getItem('spotifyAccessToken');
 
             if (!accessToken) {
                 setError('No access token found');
