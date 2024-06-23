@@ -150,6 +150,53 @@ app.post('/refresh_token', async (req, res) => {
     
 });
 
+app.get('/stats', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(400).json({ error: 'No authorization header provided' });
+        }
+    
+        const accessToken = authHeader.split(' ')[1];
+        if (!accessToken) {
+            return res.status(400).json({ error: 'No access token provided' });
+        }
+        
+        const topArtistsResponse = await axios.get('https://api.spotify.com/v1/me/top/artists', {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        const topTracksResponse = await axios.get('https://api.spotify.com/v1/me/top/tracks', {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        const topTrackIds = topTracksResponse.data.items.map(track => track.id).join(',');
+        
+        const audioFeaturesResponse = await axios.get(`https://api.spotify.com/v1/audio-features?ids=${topTrackIds}`, {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+
+        const topGenres = [...new Set(topArtistsResponse.data.items.flatMap(artist => artist.genres))];
+
+        const stats = {
+            topArtists: topArtistsResponse.data.items,
+            topTracks: topTracksResponse.data.items,
+            topGenres: topGenres,
+            audioFeatures: audioFeaturesResponse.data.audio_features
+        };
+
+        res.json(stats);
+    } catch (err) {
+        console.error('Error fetching stats:', err);
+        res.status(500).send('Error fetching stats');
+    }
+});
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

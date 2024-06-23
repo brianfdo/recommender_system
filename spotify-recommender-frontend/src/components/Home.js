@@ -130,7 +130,7 @@ const Home = () => {
                 </Container>
             </Navbar>
             <Container className="mt-5">
-                <h2 id='title'>Spotify Recommendations</h2>
+                <h2 id='title'>Your Recommendations</h2>
                 <Row>
                     {recommendations.map(track => (
                         <Col key={track.id} md={4} className="mb-4">
