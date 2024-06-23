@@ -38,7 +38,7 @@ const Callback = () => {
     }, [navigate]);
 
     return (
-        <div>
+        <div className='spinner-container'>
             <h2>Loading...</h2>
         </div>
     );

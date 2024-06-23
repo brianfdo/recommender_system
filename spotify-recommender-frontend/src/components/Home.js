@@ -74,11 +74,11 @@ const Home = () => {
     }, []);
 
     if (loading) return (
-        <Container className="text-center mt-5">
-            <Spinner animation="border" role="status">
-                <span className="visually-hidden">Loading...</span>
-            </Spinner>
-        </Container>
+        <div className="spinner-container">
+        <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+        </Spinner>
+        </div>
     );
 
     if (error) return (
@@ -104,7 +104,7 @@ const Home = () => {
                 </Container>
             </Navbar>
             <Container className="mt-5">
-                <h2>Spotify Recommendations</h2>
+                <h2 id='title'>Spotify Recommendations</h2>
                 <Row>
                     {recommendations.map(track => (
                         <Col key={track.id} md={4} className="mb-4">
