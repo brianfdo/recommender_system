@@ -7,6 +7,7 @@ const Home = () => {
     const [recommendations, setRecommendations] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [currentPreview, setCurrentPreview] = useState(null);
 
     const checkTokenExpiry = async () => {
         const accessToken = sessionStorage.getItem('spotifyAccessToken');
@@ -40,38 +41,63 @@ const Home = () => {
     
         return accessToken;
     };
+
+    const fetchRecommendations = async () => {
+        const accessToken = await checkTokenExpiry();
+
+        if (!accessToken) {
+            setError('No access token found');
+            setLoading(false);
+            return;
+        }
+
+        console.log('Retrieved access token:', accessToken);
+
+        try {
+            const response = await axios.get('http://localhost:5000/recommendations', {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`
+                }
+            });
+
+            console.log("tracks:", response.data);
+            setRecommendations(response.data || []);
+            setLoading(false);
+        } catch (err) {
+            setError('Error fetching recommendations');
+            setLoading(false);
+        }
+    };
+
+    const handlePlayPreview = (previewUrl) => {
+        if (currentPreview) {
+            currentPreview.pause();
+            setCurrentPreview(null);
+        }
+        if (previewUrl) {
+            const audio = new Audio(previewUrl);
+            audio.play();
+            setCurrentPreview(audio);
+        } else {
+            setCurrentPreview(null);
+        }
+    };
+
     
+    useEffect(() => {
+        fetchRecommendations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []); // Empty dependency array ensures this runs only once on mount
 
     useEffect(() => {
-        const fetchRecommendations = async () => {
-            const accessToken = await checkTokenExpiry();
-
-            if (!accessToken) {
-                setError('No access token found');
-                setLoading(false);
-                return;
-            }
-
-            console.log('Retrieved access token:', accessToken);
-
-            try {
-                const response = await axios.get('http://localhost:5000/recommendations', {
-                    headers: {
-                        Authorization: `Bearer ${accessToken}`
-                    }
-                });
-
-                console.log("tracks:", response.data);
-                setRecommendations(response.data || []);
-                setLoading(false);
-            } catch (err) {
-                setError('Error fetching recommendations');
-                setLoading(false);
+        return () => {
+            if (currentPreview) {
+                currentPreview.pause();
             }
         };
+    }, [currentPreview]);
 
-        fetchRecommendations();
-    }, []);
+
 
     if (loading) return (
         <div className="spinner-container">
@@ -82,9 +108,9 @@ const Home = () => {
     );
 
     if (error) return (
-        <Container className="mt-5">
+        <div className="spinner-container">
             <Alert variant="danger">{error}</Alert>
-        </Container>
+        </div>
     );
 
     return (
@@ -108,16 +134,28 @@ const Home = () => {
                 <Row>
                     {recommendations.map(track => (
                         <Col key={track.id} md={4} className="mb-4">
-                            <Card>
-                                <Card.Img variant="top" src={track.album.images[0].url} alt={track.name} />
-                                <Card.Body>
+                            <Card className="h-100">
+                                <Card.Img variant="top" src={track.album.images[0].url} alt={track.name} className="card-img" />
+                                <Card.Body className="d-flex flex-column">
                                     <Card.Title>{track.name}</Card.Title>
-                                    <Card.Text>
+                                    <Card.Text className="mb-4">
                                         {track.artists.map(artist => artist.name).join(', ')}
                                     </Card.Text>
-                                    <Button variant="primary" href={track.external_urls.spotify} target="_blank">
-                                        Listen on Spotify
-                                    </Button>
+                                        <Button 
+                                            variant="primary" 
+                                            href={track.external_urls.spotify} 
+                                            target="_blank" 
+                                            className="mb-2"
+                                        >
+                                            Listen on Spotify
+                                        </Button>
+                                        <Button 
+                                            variant="secondary" 
+                                            onClick={() => handlePlayPreview(track.preview_url)}
+                                            disabled={!track.preview_url}
+                                        >
+                                            {track.preview_url ? 'Play Preview' : 'No Preview Available'}
+                                        </Button>
                                 </Card.Body>
                             </Card>
                         </Col>
