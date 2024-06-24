@@ -3,6 +3,7 @@ const axios = require('axios');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const querystring = require('querystring');
+const { AssertionError } = require('assert');
 
 dotenv.config();
 
@@ -35,7 +36,7 @@ app.get('/spotify-client-id', (req, res) => {
 app.post('/callback', async (req, res) => {
     const { code } = req.body;
     console.log('POST /callback called with code:', code);
-    console.log(req)
+    // console.log(req)
 
     if (!code) {
         console.error('No authorization code provided');
@@ -57,7 +58,6 @@ app.post('/callback', async (req, res) => {
         });
 
         const { access_token, refresh_token, expires_in } = response.data;
-        // res.redirect(`http://localhost:3000/home?access_token=${access_token}`);
         res.json({ access_token, refresh_token, expires_in });
     } catch (error) {
         console.error('Error fetching access token:', error);
@@ -79,29 +79,43 @@ app.get('/recommendations', async (req, res) => {
     }
     console.log("server recommendations token", accessToken);
     try {
-        const response = await axios.get('https://api.spotify.com/v1/me/top/artists', {
-            headers: {
-                Authorization: `Bearer ${accessToken}`,
-            },
-        });
-
-        const topArtists = response.data.items.map(artist => artist.id);
-        console.log('got top artists', topArtists.slice(0,5).join(','));
+        const topArtists = req.headers.artists;
+        if (!topArtists) {
+            console.log("artist header is empty");
+            const response = await axios.get('https://api.spotify.com/v1/me/top/artists', {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+    
+            topArtists = response.data.items.map(artist => artist.id);
+        }
+        console.log(topArtists);
+        console.log('got top artists', topArtists.split(',').slice(0,5).join(','));
+        const top5 = topArtists.split(',').slice(0,5).join(',')
         const recommendations = await axios.get('https://api.spotify.com/v1/recommendations', {
             headers: {
                 Authorization: `Bearer ${accessToken}`,
             },
             params: {
-                seed_artists: topArtists.slice(0,5).join(','),
-                limit: 10,
+                seed_artists: top5,
+                limit: 12,
             },
         });
         console.log('got recommendations');
 
         res.json(recommendations.data.tracks);
     } catch (error) {
-        console.error('Error fetching recommendations:', error.response.data);
-        res.status(500).send(error.response.data);
+        if (error.response) {
+            console.error('Error fetching recommendations:', error.response.data);
+            res.status(error.response.status).send(error.response.data);
+        } else if (error.request) {
+            console.error('Error fetching recommendations: No response received');
+            res.status(500).send('No response received from Spotify API');
+        } else {
+            console.error('Error fetching recommendations:', error.message);
+            res.status(500).send('Error fetching recommendations');
+        }
     }
 });
 
@@ -156,18 +170,27 @@ app.get('/stats', async (req, res) => {
         if (!authHeader) {
             return res.status(400).json({ error: 'No authorization header provided' });
         }
-    
+        // console.log("stats request", req);
+        console.log("stats header", authHeader);
         const accessToken = authHeader.split(' ')[1];
         if (!accessToken) {
             return res.status(400).json({ error: 'No access token provided' });
         }
-        
-        const topArtistsResponse = await axios.get('https://api.spotify.com/v1/me/top/artists', {
-            headers: {
-                Authorization: `Bearer ${accessToken}`
-            }
-        });
-
+        console.log("server stats token", accessToken);
+        const topArtistsResponse = JSON.parse(req.headers.artists);
+        // console.log("artists header", topArtistsResponse);
+        if (!topArtistsResponse) {
+            console.log("artist header is empty");
+            const topArtistsResponse = await axios.get('https://api.spotify.com/v1/me/top/artists', {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                },
+            });
+    
+            
+        }
+        const topArtists = topArtistsResponse.map(artist => artist.id);
+        // console.log('got top artists in stats', topArtists);
         const topTracksResponse = await axios.get('https://api.spotify.com/v1/me/top/tracks', {
             headers: {
                 Authorization: `Bearer ${accessToken}`
@@ -182,10 +205,10 @@ app.get('/stats', async (req, res) => {
             }
         });
 
-        const topGenres = [...new Set(topArtistsResponse.data.items.flatMap(artist => artist.genres))];
+        const topGenres = [...new Set(topArtistsResponse.flatMap(artist => artist.genres))];
 
         const stats = {
-            topArtists: topArtistsResponse.data.items,
+            topArtists: topArtistsResponse,
             topTracks: topTracksResponse.data.items,
             topGenres: topGenres,
             audioFeatures: audioFeaturesResponse.data.audio_features
@@ -197,6 +220,32 @@ app.get('/stats', async (req, res) => {
         res.status(500).send('Error fetching stats');
     }
 });
+
+app.get('/top_artists', async (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) {
+            return res.status(400).json({ error: 'No authorization header provided' });
+        }
+        // console.log("top artist request", req);
+        console.log("top artist header", authHeader);
+        const accessToken = authHeader.split(' ')[1];
+        if (!accessToken) {
+            return res.status(400).json({ error: 'No access token provided' });
+        }
+        console.log("server stats token", accessToken);
+        const topArtistsResponse = await axios.get('https://api.spotify.com/v1/me/top/artists', {
+            headers: {
+                Authorization: `Bearer ${accessToken}`
+            }
+        });
+        res.json(topArtistsResponse.data.items);
+    } catch (err) {
+        console.error('Error fetching stats:', err);
+        res.status(500).send('Error fetching stats');
+    }
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

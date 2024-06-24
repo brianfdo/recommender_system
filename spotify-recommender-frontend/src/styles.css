@@ -62,6 +62,10 @@ h5 {
     border-radius: 0.25rem;
 }
 
+.button-card {
+    background-color: rgba(30,215,96,1) !important;
+}
+
 .card-img {
     object-fit: cover;
     height: 69%; /* Adjust the height as needed */

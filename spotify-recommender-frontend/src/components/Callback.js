@@ -24,10 +24,21 @@ const Callback = () => {
                 const res = response.data;
                 console.log('Access token received:', res);
 
+                const artists = await axios.get('http://localhost:5000/top_artists', {
+                    headers: {
+                        Authorization: `Bearer ${res.access_token}`
+                    }
+                });
+                console.log("Artists", artists)
+                console.log("Artists data", artists.data)
+                const topArtists = artists.data.map(artist => artist.id);
+                console.log("top artists console", topArtists);
                 // Store the access token and redirect to home
                 sessionStorage.setItem('spotifyAccessToken', res.access_token);
                 sessionStorage.setItem('spotifyRefreshToken', res.refresh_token);
                 sessionStorage.setItem('tokenExpiration', Date.now() + res.expires_in * 1000);
+                sessionStorage.setItem('topArtists', topArtists);
+                sessionStorage.setItem('artistData', JSON.stringify(artists));
                 navigate('/home');
             } catch (error) {
                 console.error('Error fetching access token:', error);

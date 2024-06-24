@@ -14,7 +14,7 @@ const Home = () => {
         const tokenExpiration = sessionStorage.getItem('tokenExpiration');
     
         if (!accessToken || Date.now() >= tokenExpiration) {
-            const refreshToken = localStorage.getItem('spotifyRefreshToken');
+            const refreshToken = sessionStorage.getItem('spotifyRefreshToken');
     
             if (!refreshToken) {
                 // Handle case where no refresh token is available
@@ -52,11 +52,12 @@ const Home = () => {
         }
 
         console.log('Retrieved access token:', accessToken);
-
+        console.log('Session Storage Top Artists',sessionStorage.getItem('topArtists'));
         try {
             const response = await axios.get('http://localhost:5000/recommendations', {
                 headers: {
-                    Authorization: `Bearer ${accessToken}`
+                    Authorization: `Bearer ${accessToken}`,
+                    Artists: sessionStorage.getItem('topArtists')
                 }
             });
 
@@ -108,9 +109,12 @@ const Home = () => {
     );
 
     if (error) return (
+        <>
+        
         <div className="spinner-container">
             <Alert variant="danger">{error}</Alert>
         </div>
+        </>
     );
 
     return (
@@ -124,7 +128,9 @@ const Home = () => {
                             <LinkContainer to="/home">
                                 <Nav.Link>Home</Nav.Link>
                             </LinkContainer>
-                            {/* Add more links here if needed */}
+                            <LinkContainer to="/stats">
+                                <Nav.Link>Stats</Nav.Link>    
+                            </LinkContainer>
                         </Nav>
                     </Navbar.Collapse>
                 </Container>
@@ -142,10 +148,10 @@ const Home = () => {
                                         {track.artists.map(artist => artist.name).join(', ')}
                                     </Card.Text>
                                         <Button 
-                                            variant="primary" 
+                                            variant="button-card" 
                                             href={track.external_urls.spotify} 
                                             target="_blank" 
-                                            className="mb-2"
+                                            className="mb-2 button-card"
                                         >
                                             Listen on Spotify
                                         </Button>
