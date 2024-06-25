@@ -71,6 +71,21 @@ h5 {
     height: 69%; /* Adjust the height as needed */
 }
 
+.artist-img {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin-right: 10px;
+    object-fit: cover;
+    vertical-align: middle;
+}
+
+.artist-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
 .card-body {
     display: flex;
     flex-direction: column;

@@ -134,7 +134,14 @@ const Stats = () => {
                             <Card.Title>Top Artists</Card.Title>
                             <Card.Text>
                                 {stats.topArtists && stats.topArtists.map(artist => (
-                                    <div key={artist.id}>{artist.name}</div>
+                                    <div key={artist.id} className='artistItem'>
+                                        <img 
+                                            src={artist.images[0].url} 
+                                            alt={artist.name} 
+                                            className="artist-img" 
+                                        />
+                                        {artist.name}
+                                    </div>
                                 ))}
                             </Card.Text>
                         </Card.Body>
