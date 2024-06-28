@@ -226,7 +226,7 @@ const Stats = () => {
                 <Col>
                     <Card className="mb-4">
                         <Card.Body>
-                        <Card.Title className="custom-card-title-stats">Genres</Card.Title>
+                        <Card.Title className="custom-card-title-stats">Top Genres</Card.Title>
                         <Card.Text>
                             <Row>
                                 {stats.topGenres && stats.topGenres.reduce((result, genre, index) => {
