@@ -68,25 +68,74 @@ h5 {
 
 .card-img {
     object-fit: cover;
-    height: 69%; /* Adjust the height as needed */
+    height: 69%; 
 }
 
-.artist-img {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    margin-right: 10px;
+.custom-card-title-stats {
+    text-align: center;
+    background-color: rgb(39, 42, 38);
+    color: white;
+    padding: 10px; /* Adjust padding as needed */
+    border-radius: 5px; /* Optional: to give some rounded corners */
+
+}
+
+.item-img {
+    width: 50px;  /* Adjusted size */
+    height: 50px; /* Adjusted size */
+    /* border-radius: 50%; */
+    margin-right: 15px;
     object-fit: cover;
     vertical-align: middle;
 }
 
-.artist-item {
+.item-name {
+    font-size: 1.2em; /* Adjusted size */
+    font-weight: bold;
+}
+
+.artist-item, .track-item {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-bottom: 15px; /* Adjusted spacing */
+}
+
+.genre-item {
+    font-size: 1.1em; /* Adjust font size as needed */
+    margin-bottom: 10px; /* Adjust spacing as needed */
+}
+
+.artist-img {
+    border-radius: 50%;
+}
+
+.track-img {
+    border-radius: 10px;
+}
+
+.btn-track {
+    /* margin-left: auto; */
+    margin-right: auto;
+    /* border-radius: 10%; */
+    background-color:  rgb(39, 42, 38);
+}
+
+.btn-track-div {
+    margin-left: auto;
+    /* border-radius: 10%; */
+    /* background-color: rgba(30,215,96,1) !important; */
 }
 
 .card-body {
     display: flex;
     flex-direction: column;
+}
+
+.black {
+    color: rgba(30,215,96,1) !important;
+    font-size: 150%;
+}
+
+.regular-play {
+    font-size: 150%;
 }

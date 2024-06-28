@@ -1,13 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Container, Row, Col, Card, Spinner, Alert, Nav, Navbar } from 'react-bootstrap';
+import { Container, Row, Col, Card, Spinner, Alert, Nav, Navbar, Button } from 'react-bootstrap';
 import Plot from 'react-plotly.js';
 import { LinkContainer } from 'react-router-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlay } from '@fortawesome/free-solid-svg-icons';
+import { faSpotify } from '@fortawesome/free-brands-svg-icons';
 
 const Stats = () => {
     const [stats, setStats] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [currentPreview, setCurrentPreview] = useState(null);
 
     const fetchStats = async () => {
         try {
@@ -42,6 +46,20 @@ const Stats = () => {
             fetchStats();
     }, []);
 
+    const handlePlayPreview = (previewUrl) => {
+        if (currentPreview) {
+            currentPreview.pause();
+            setCurrentPreview(null);
+        }
+        if (previewUrl) {
+            const audio = new Audio(previewUrl);
+            audio.play();
+            setCurrentPreview(audio);
+        } else {
+            setCurrentPreview(null);
+        }
+    };
+
     if (loading) {
         return (
             <div className="spinner-container">
@@ -65,7 +83,8 @@ const Stats = () => {
     const danceability = audioFeatures.map(feature => feature.danceability);
     const energy = audioFeatures.map(feature => feature.energy);
     const valence = audioFeatures.map(feature => feature.valence);
-    const labels = audioFeatures.map((_, index) => `Track ${index + 1}`);
+    // const labels = audioFeatures.map((_, index) => `Track ${index + 1}`);
+    const labels = stats.topTracks.map(track => track.name);
 
     return (
         <>
@@ -86,12 +105,12 @@ const Stats = () => {
                 </Container>
             </Navbar>
         <Container className="mt-5">
-            <h2 id='title'>User Music Stats</h2>
+            <h2 id='title'>Your Music Stats</h2>
             <Row>
                 <Col>
                     <Card className="mb-4">
                         <Card.Body>
-                            <Card.Title>Top Tracks Audio Features</Card.Title>
+                            <Card.Title className='custom-card-title-stats'>Top Tracks Audio Features</Card.Title>
                             <Plot
                                 data={[
                                     {
@@ -117,7 +136,7 @@ const Stats = () => {
                                     },
                                 ]}
                                 layout={{
-                                    barmode: 'stack',
+                                    barmode: 'group',
                                     title: 'Audio Features of Top Tracks',
                                     xaxis: { title: 'Tracks' },
                                     yaxis: { title: 'Values' },
@@ -131,16 +150,18 @@ const Stats = () => {
                 <Col>
                     <Card className="mb-4">
                         <Card.Body>
-                            <Card.Title>Top Artists</Card.Title>
+                            <Card.Title className='custom-card-title-stats'>Top Artists</Card.Title>
                             <Card.Text>
                                 {stats.topArtists && stats.topArtists.map(artist => (
-                                    <div key={artist.id} className='artistItem'>
+                                    <div key={artist.id} className="artist-item">
+                                        <a href={artist.external_urls.spotify}>
                                         <img 
                                             src={artist.images[0].url} 
                                             alt={artist.name} 
-                                            className="artist-img" 
+                                            className="item-img artist-img" 
                                         />
-                                        {artist.name}
+                                        </a>
+                                        <span className="item-name">{artist.name}</span>
                                     </div>
                                 ))}
                             </Card.Text>
@@ -150,10 +171,51 @@ const Stats = () => {
                 <Col>
                     <Card className="mb-4">
                         <Card.Body>
-                            <Card.Title>Top Tracks</Card.Title>
+                            <Card.Title className='custom-card-title-stats'>Top Tracks</Card.Title>
                             <Card.Text>
                                 {stats.topTracks && stats.topTracks.map(track => (
-                                    <div key={track.id}>{track.name}</div>
+                                    <div key={track.id} className="track-item">
+                                        <a href={track.external_urls.spotify}>
+                                        <img 
+                                            src={track.album.images[0].url} 
+                                            alt={track.name} 
+                                            className="item-img track-img"
+                                        />
+                                        </a>
+
+                                        <span className="item-name" >{track.name}</span>
+                                        
+                                        <div className='btn-track-div'>
+                                        {track.external_urls.spotify && (
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                className="btn-track"
+                                                href={track.external_urls.spotify}
+                                            >
+                                                <FontAwesomeIcon icon={faSpotify} className='black' size='1.5x'/>
+                                            </Button>
+                                        )}
+                                        {'  '}
+                                        {track.preview_url && (
+                                            <Button
+                                                variant="secondary"
+                                                size="sm"
+                                                className="mr-4"
+                                                onClick={() => handlePlayPreview(track.preview_url)}
+                                                disabled={!track.preview_url}
+                                            >
+                                                <FontAwesomeIcon icon={faPlay} size='1x' className='regular-play'/>
+                                            </Button>
+                                        )}
+                                        </div>
+                                
+                                        
+
+
+
+                                        
+                                    </div>
                                 ))}
                             </Card.Text>
                         </Card.Body>
@@ -164,12 +226,25 @@ const Stats = () => {
                 <Col>
                     <Card className="mb-4">
                         <Card.Body>
-                            <Card.Title>Top Genres</Card.Title>
-                            <Card.Text>
-                                {stats.topGenres && stats.topGenres.map((genre, index) => (
-                                    <div key={index}>{genre}</div>
+                        <Card.Title className="custom-card-title-stats">Genres</Card.Title>
+                        <Card.Text>
+                            <Row>
+                                {stats.topGenres && stats.topGenres.reduce((result, genre, index) => {
+                                    const colIndex = index % 4;
+                                    if (!result[colIndex]) {
+                                        result[colIndex] = [];
+                                    }
+                                    result[colIndex].push(
+                                        <div key={genre} className="genre-item">{genre}</div>
+                                    );
+                                    return result;
+                                }, []).map((col, index) => (
+                                    <Col key={index}>
+                                        {col}
+                                    </Col>
                                 ))}
-                            </Card.Text>
+                            </Row>
+                        </Card.Text>
                         </Card.Body>
                     </Card>
                 </Col>
