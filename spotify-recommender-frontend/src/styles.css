@@ -92,6 +92,7 @@ h5 {
 .item-name {
     font-size: 1.2em; /* Adjusted size */
     font-weight: bold;
+    max-width: 300px;
 }
 
 .artist-item, .track-item {
