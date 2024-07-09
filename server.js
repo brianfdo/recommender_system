@@ -1,5 +1,6 @@
 const express = require('express');
 const axios = require('axios');
+const { spawn } = require('child_process');
 const cors = require('cors');
 const dotenv = require('dotenv');
 const querystring = require('querystring');
@@ -16,17 +17,27 @@ const CLIENT_ID = process.env.SPOTIFY_CLIENT_ID;
 const CLIENT_SECRET = process.env.SPOTIFY_CLIENT_SECRET;
 const REDIRECT_URI = process.env.REDIRECT_URI;
 
-// app.get('/login', (req, res) => {
-//     const scope = 'user-top-read';
-//     const queryParams = querystring.stringify({
-//         response_type: 'code',
-//         client_id: CLIENT_ID,
-//         scope: scope,
-//         redirect_uri: REDIRECT_URI,
-//     });
-//     res.redirect(`https://accounts.spotify.com/authorize?${queryParams}`);
-//     console.log("query params sent to spotify");
-// });
+const flaskProcess = spawn('python', ['flask_server.py']);
+
+flaskProcess.stdout.on('data', (data) => {
+    console.log(`Flask server output: ${data}`);
+});
+
+flaskProcess.stderr.on('data', (data) => {
+    console.error(`Flask server error: ${data}`);
+});
+
+app.post('/get-prediction', async (req, res) => {
+    const features = req.body.features;
+
+    try {
+        const response = await axios.post('http://localhost:5001/predict', { features });
+        res.json(response.data);
+    } catch (error) {
+        console.error('Error fetching prediction:', error);
+        res.status(500).json({ error: 'Error fetching prediction' });
+    }
+});
 
 app.get('/spotify-client-id', (req, res) => {
     console.log('GET /spotify-client-id called');
@@ -249,4 +260,8 @@ app.get('/top_artists', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
+});
+
+process.on('exit', () => {
+    flaskProcess.kill();
 });
