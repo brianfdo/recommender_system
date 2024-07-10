@@ -131,6 +131,9 @@ const Home = () => {
                             <LinkContainer to="/stats">
                                 <Nav.Link>Stats</Nav.Link>    
                             </LinkContainer>
+                            <LinkContainer to="/explore">
+                                <Nav.Link>Explore</Nav.Link>    
+                            </LinkContainer>
                         </Nav>
                     </Navbar.Collapse>
                 </Container>

@@ -20,16 +20,6 @@ music_data = pd.read_csv('data/main_dataset.csv.zip')
 
 number_cols = ['valence', 'year', 'acousticness', 'danceability', 'duration_ms', 'energy',
  'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'popularity', 'speechiness', 'tempo']
-# song_cluster_pipeline = Pipeline([('scaler', StandardScaler()), 
-#                                   ('kmeans', KMeans(n_clusters=20, 
-#                                    verbose=2))], verbose=True)
-# # X = music_data.select_dtypes(np.number)
-# # number_cols = ['valence', 'year', 'acousticness', 'danceability', 'duration_ms', 'energy',
-# #  'instrumentalness', 'key', 'liveness', 'loudness', 'mode', 'popularity', 'speechiness', 'tempo']
-# X = music_data.loc[:,number_cols]
-# # number_cols = list(X.columns)
-# song_cluster_pipeline.fit(X)
-
 
 
 def find_song(name, year):
@@ -95,18 +85,19 @@ def flatten_dict_list(dict_list):
     return flattened_dict
         
 
-def recommend_songs( song_list, spotify_data, n_songs=10):
+def recommend_songs( song_list, spotify_data, n_songs=11):
     metadata_cols = ['name', 'year', 'artists', 'id']
     song_dict = flatten_dict_list(song_list)
     
     song_center = get_mean_vector(song_list, spotify_data)
+    index = 0
     with open('models/model.pkl', 'rb') as file:
         song_cluster_pipeline = pickle.load(file)
-    scaler = song_cluster_pipeline.steps[0][1]
-    scaled_data = scaler.transform(spotify_data[number_cols])
-    scaled_song_center = scaler.transform(song_center.reshape(1, -1))
-    distances = cdist(scaled_song_center, scaled_data, 'cosine')
-    index = list(np.argsort(distances)[:, :n_songs][0])
+        scaler = song_cluster_pipeline.steps[0][1]
+        scaled_data = scaler.transform(spotify_data[number_cols])
+        scaled_song_center = scaler.transform(song_center.reshape(1, -1))
+        distances = cdist(scaled_song_center, scaled_data, 'cosine')
+        index = list(np.argsort(distances)[:, :n_songs][0])
     
     rec_songs = spotify_data.iloc[index]
     rec_songs = rec_songs[~rec_songs['name'].isin(song_dict['name'])]
@@ -117,12 +108,12 @@ app = Flask(__name__)
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
+    
     features = data['features']
+    # features_df = pd.DataFrame([features])
+    prediction = recommend_songs(features, music_data)
     
-    features_df = pd.DataFrame([features])
-    prediction = recommend_songs(features_df, music_data)
-    
-    return jsonify({'prediction': prediction.tolist()})
+    return jsonify({'prediction': prediction, "type": str(type(prediction))})
 
 if __name__ == '__main__':
-    app.run(port=5001)
+    app.run(port=5001, debug=True)

@@ -28,10 +28,10 @@ flaskProcess.stderr.on('data', (data) => {
 });
 
 app.post('/get-prediction', async (req, res) => {
-    const features = req.body.features;
-
+    const features = req.body.track_info;
+    console.log("python", features);
     try {
-        const response = await axios.post('http://localhost:5001/predict', { features });
+        const response = await axios.post('http://127.0.0.1:5001/predict', { features });
         res.json(response.data);
     } catch (error) {
         console.error('Error fetching prediction:', error);

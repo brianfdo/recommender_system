@@ -4,71 +4,37 @@ import { Container, Row, Col, Card, Button, Alert, Spinner, Navbar, Nav } from '
 import { LinkContainer } from 'react-router-bootstrap';
 
 const Explore = () => {
-    const [recommendations, setRecommendations] = useState([]);
+    const [recommendations, setRecommendedTracks] = useState([]);
+    // const [stats, setStats] = useState({});
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [currentPreview, setCurrentPreview] = useState(null);
 
-    const checkTokenExpiry = async () => {
-        const accessToken = sessionStorage.getItem('spotifyAccessToken');
-        const tokenExpiration = sessionStorage.getItem('tokenExpiration');
-    
-        if (!accessToken || Date.now() >= tokenExpiration) {
-            const refreshToken = sessionStorage.getItem('spotifyRefreshToken');
-    
-            if (!refreshToken) {
-                // Handle case where no refresh token is available
-                throw new Error('No refresh token available');
-            }
-    
+    useEffect(() => {
+        const fetchRecommendations = async () => {
             try {
-                const response = await axios.post('http://localhost:5000/refresh_token', {
-                    refresh_token: refreshToken
-                });
-    
-                const { access_token, expires_in } = response.data;
-    
-                // Update localStorage with new token and expiration
-                sessionStorage.setItem('spotifyAccessToken', access_token);
-                sessionStorage.setItem('tokenExpiration', Date.now() + expires_in * 1000);
-    
-                return access_token;
-            } catch (err) {
-                console.error('Error refreshing token:', err);
-                throw new Error('Error refreshing token');
-            }
-        }
-    
-        return accessToken;
-    };
-
-    const fetchRecommendations = async () => {
-        const accessToken = await checkTokenExpiry();
-
-        if (!accessToken) {
-            setError('No access token found');
-            setLoading(false);
-            return;
-        }
-
-        console.log('Retrieved access token:', accessToken);
-        console.log('Session Storage Top Artists',sessionStorage.getItem('topArtists'));
-        try {
-            const response = await axios.get('http://localhost:5000/recommendations', {
-                headers: {
-                    Authorization: `Bearer ${accessToken}`,
-                    Artists: sessionStorage.getItem('topArtists')
+                const spotifyStats = JSON.parse(sessionStorage.getItem('spotifyStats'));
+                const topTracks = spotifyStats?.topTracks
+                var trackInfo = topTracks.map( function(track) {
+                        var trackYear = parseInt(track.album.release_date.substring(0, 4));
+                        var info = { "name": track.name,
+                                     "year": trackYear
+                                    }
+                        return info;
+                   });
+                console.log("track info:", trackInfo);
+                if (topTracks) {
+                    const response = await axios.post('http://localhost:5000/get-prediction', { track_info: trackInfo });
+                    console.log(response.data)
+                    setRecommendedTracks(response.data.recommended_tracks);
                 }
-            });
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+            }
+        };
 
-            console.log("tracks:", response.data);
-            setRecommendations(response.data || []);
-            setLoading(false);
-        } catch (err) {
-            setError('Error fetching recommendations');
-            setLoading(false);
-        }
-    };
+        fetchRecommendations();
+    }, []);
 
     const handlePlayPreview = (previewUrl) => {
         if (currentPreview) {
@@ -85,10 +51,10 @@ const Explore = () => {
     };
 
     
-    useEffect(() => {
-        fetchRecommendations();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []); // Empty dependency array ensures this runs only once on mount
+    // useEffect(() => {
+    //     fetchRecommendations();
+    // // eslint-disable-next-line react-hooks/exhaustive-deps
+    // }, []); // Empty dependency array ensures this runs only once on mount
 
     useEffect(() => {
         return () => {

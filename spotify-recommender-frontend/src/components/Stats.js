@@ -21,6 +21,7 @@ const Stats = () => {
             const cachedStats = sessionStorage.getItem('spotifyStats');
             if (cachedStats) {
                 setStats(JSON.parse(cachedStats));
+                console.log(stats);
                 setLoading(false);
                 return;
             }
@@ -33,6 +34,7 @@ const Stats = () => {
             });
 
             setStats(response.data);
+            
             sessionStorage.setItem('spotifyStats', JSON.stringify(response.data)); // Cache the stats
             setLoading(false);
         } catch (err) {
@@ -99,6 +101,9 @@ const Stats = () => {
                             </LinkContainer>
                             <LinkContainer to="/stats">
                                 <Nav.Link>Stats</Nav.Link>    
+                            </LinkContainer>
+                            <LinkContainer to="/explore">
+                                <Nav.Link>Explore</Nav.Link>    
                             </LinkContainer>
                         </Nav>
                     </Navbar.Collapse>
