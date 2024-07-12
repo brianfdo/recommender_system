@@ -42,7 +42,7 @@ const Login = () => {
                 <Col md={6} lg={4}>
                     <Card>
                         <Card.Body>
-                            <h2 className="text-center mb-4">Spotify Recommender</h2>
+                            <h2 className="text-center mb-4">Music Recommender</h2>
                             <Button variant="primary" className="w-100 mt-4" onClick={handleLogin} disabled={!clientId}>
                                 Login with Spotify
                             </Button>

@@ -35,7 +35,7 @@ const Stats = () => {
 
             setStats(response.data);
             
-            sessionStorage.setItem('spotifyStats', JSON.stringify(response.data)); // Cache the stats
+            sessionStorage.setItem('spotifyStats', JSON.stringify(response.data)); 
             setLoading(false);
         } catch (err) {
             console.error('Error fetching stats:', err);
@@ -46,6 +46,7 @@ const Stats = () => {
 
     useEffect(() => {
             fetchStats();
+            // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handlePlayPreview = (previewUrl) => {
@@ -92,7 +93,7 @@ const Stats = () => {
         <>
         <Navbar bg="dark" variant="dark" expand="lg">
                 <Container>
-                    <Navbar.Brand href="/">Spotify Recommender</Navbar.Brand>
+                    <Navbar.Brand href="/">Music Recommender</Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">

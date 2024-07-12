@@ -10,10 +10,55 @@ const Explore = () => {
     const [error, setError] = useState(null);
     const [currentPreview, setCurrentPreview] = useState(null);
 
+    const checkTokenExpiry = async () => {
+        const accessToken = sessionStorage.getItem('spotifyAccessToken');
+        const tokenExpiration = sessionStorage.getItem('tokenExpiration');
+    
+        if (!accessToken || Date.now() >= tokenExpiration) {
+            const refreshToken = sessionStorage.getItem('spotifyRefreshToken');
+    
+            if (!refreshToken) {
+                // Handle case where no refresh token is available
+                throw new Error('No refresh token available');
+            }
+    
+            try {
+                const response = await axios.post('http://localhost:5000/refresh_token', {
+                    refresh_token: refreshToken
+                });
+    
+                const { access_token, expires_in } = response.data;
+    
+                // Update localStorage with new token and expiration
+                sessionStorage.setItem('spotifyAccessToken', access_token);
+                sessionStorage.setItem('tokenExpiration', Date.now() + expires_in * 1000);
+    
+                return access_token;
+            } catch (err) {
+                console.error('Error refreshing token:', err);
+                throw new Error('Error refreshing token');
+            }
+        }
+    
+        return accessToken;
+    };
+
+
     useEffect(() => {
         const fetchRecommendations = async () => {
             try {
-                const spotifyStats = JSON.parse(sessionStorage.getItem('spotifyStats'));
+                var spotifyStats = JSON.parse(sessionStorage.getItem('spotifyStats'));
+                const access_token = await checkTokenExpiry();
+                if (!spotifyStats) {
+                    const response = await axios.get('http://localhost:5000/stats', {
+                        headers: {
+                            Authorization: `Bearer ${access_token}`,
+                            Artists: JSON.stringify(JSON.parse(sessionStorage.getItem('artistData')).data)
+                        }
+                    });
+                    sessionStorage.setItem('spotifyStats', JSON.stringify(response.data));
+                    spotifyStats = response.data;
+                }
                 const topTracks = spotifyStats?.topTracks
                 var trackInfo = topTracks.map( function(track) {
                         var trackYear = parseInt(track.album.release_date.substring(0, 4));
@@ -26,10 +71,25 @@ const Explore = () => {
                 if (topTracks) {
                     const response = await axios.post('http://localhost:5000/get-prediction', { track_info: trackInfo });
                     console.log(response.data)
-                    setRecommendedTracks(response.data.recommended_tracks);
+                    const recommended_tracks = response.data;
+
+                    
+                    console.log("yo:",recommended_tracks.prediction.map(track => track.id).join(','));
+                    const ids_param = recommended_tracks.prediction.map(track => track.id).join(',')
+                    const res = await axios.get('http://localhost:5000/tracks', {
+                        headers: {
+                            Authorization: `Bearer ${access_token}`,
+                            ids: ids_param
+                        }
+                    });
+                    console.log("tracks:", res.data);
+                    setRecommendedTracks(res.data || []);                  
                 }
+                setLoading(false);
             } catch (error) {
+                setError('Error fetching recommendations');
                 console.error('Error fetching recommendations:', error);
+                setLoading(false)
             }
         };
 
@@ -50,11 +110,6 @@ const Explore = () => {
         }
     };
 
-    
-    // useEffect(() => {
-    //     fetchRecommendations();
-    // // eslint-disable-next-line react-hooks/exhaustive-deps
-    // }, []); // Empty dependency array ensures this runs only once on mount
 
     useEffect(() => {
         return () => {
@@ -76,7 +131,6 @@ const Explore = () => {
 
     if (error) return (
         <>
-        
         <div className="spinner-container">
             <Alert variant="danger">{error}</Alert>
         </div>
@@ -87,7 +141,7 @@ const Explore = () => {
         <>
             <Navbar bg="dark" variant="dark" expand="lg">
                 <Container>
-                    <Navbar.Brand href="/">Spotify Recommender</Navbar.Brand>
+                    <Navbar.Brand href="/">Music Recommender</Navbar.Brand>
                     <Navbar.Toggle aria-controls="basic-navbar-nav" />
                     <Navbar.Collapse id="basic-navbar-nav">
                         <Nav className="me-auto">
@@ -97,12 +151,15 @@ const Explore = () => {
                             <LinkContainer to="/stats">
                                 <Nav.Link>Stats</Nav.Link>    
                             </LinkContainer>
+                            <LinkContainer to="/explore">
+                                <Nav.Link>Explore</Nav.Link>    
+                            </LinkContainer>
                         </Nav>
                     </Navbar.Collapse>
                 </Container>
             </Navbar>
             <Container className="mt-5">
-                <h2 id='title'>Your Recommendations</h2>
+                <h2 id='title'>Explore Different Genres</h2>
                 <Row>
                     {recommendations.map(track => (
                         <Col key={track.id} md={4} className="mb-4">

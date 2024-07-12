@@ -85,7 +85,7 @@ def flatten_dict_list(dict_list):
     return flattened_dict
         
 
-def recommend_songs( song_list, spotify_data, n_songs=11):
+def recommend_songs( song_list, spotify_data, n_songs=12):
     metadata_cols = ['name', 'year', 'artists', 'id']
     song_dict = flatten_dict_list(song_list)
     
@@ -111,7 +111,7 @@ def predict():
     
     features = data['features']
     # features_df = pd.DataFrame([features])
-    prediction = recommend_songs(features, music_data)
+    prediction = recommend_songs(features, music_data, 15)
     
     return jsonify({'prediction': prediction, "type": str(type(prediction))})
 
