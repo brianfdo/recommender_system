@@ -47,8 +47,6 @@ def find_song(name, year):
     return pd.DataFrame(song_data)
 
 
-
-
 def get_song_data(song, spotify_data):
     try:
         song_data = spotify_data[(spotify_data['name'] == song['name']) 
@@ -108,9 +106,7 @@ app = Flask(__name__)
 @app.route('/predict', methods=['POST'])
 def predict():
     data = request.json
-    
     features = data['features']
-    # features_df = pd.DataFrame([features])
     prediction = recommend_songs(features, music_data, 15)
     
     return jsonify({'prediction': prediction, "type": str(type(prediction))})
