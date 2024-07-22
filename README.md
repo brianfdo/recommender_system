@@ -30,7 +30,7 @@ This project is a full-stack web application that provides personalized music re
 **Node.js & Express:** Serve as the primary backend framework for handling requests and routing.\
 **Flask:** Runs the custom machine learning model for generating music recommendations.\
 **Spotify Web API:** Used to fetch user data, including top tracks and artists.\
-**Axios:** Used within the backend to make API requests.\
+**Axios:** Used within the backend to make API requests.
 
 #### Machine Learning
 **pandas & numpy:** Libraries used for data manipulation and EDA.\
