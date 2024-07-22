@@ -69,3 +69,5 @@ Solution: Leveraged pandas for efficient data manipulation and implemented optim
 **Integration**\
 Challenge: Integrating the Flask server with the Node.js backend.\
 Solution: Used Axios for seamless communication between the Node.js backend and Flask server, ensuring smooth data flow and integration.
+
+If you are an active Spotify user and would like to try this out, please email me at brianfdo3@gmail.com so that I can extend API access to your account!
