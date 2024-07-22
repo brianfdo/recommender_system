@@ -55,15 +55,15 @@ Content-based filtering, on the other hand, recommends items by comparing the fe
 ## Challenges and Solutions
 **API Rate Limits**\
 Challenge: Handling rate limits imposed by the Spotify API.\
-Solution: Implemented efficient data fetching and caching strategies to minimize the number of API calls.\
+Solution: Implemented efficient data fetching and caching strategies to minimize the number of API calls.
 
 **Token Expiry**\
 Challenge: Managing OAuth token expiry and refresh.\
-Solution: Developed a robust token management system that refreshes tokens as needed to ensure continuous access.\
+Solution: Developed a robust token management system that refreshes tokens as needed to ensure continuous access.
 
 **Data Processing**\
 Challenge: Processing large amounts of user data efficiently.\
-Solution: Leveraged pandas for efficient data manipulation and implemented optimized data processing pipelines.\
+Solution: Leveraged pandas for efficient data manipulation and implemented optimized data processing pipelines.
 
 **Integration**\
 Challenge: Integrating the Flask server with the Node.js backend.\
