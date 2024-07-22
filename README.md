@@ -35,7 +35,8 @@ This project is a full-stack web application that provides personalized music re
 #### Machine Learning
 **pandas & numpy:** Libraries used for data manipulation and EDA.\
 **scikit-learn:** Used for creating and training the recommendation model.\
-**Flask:** Serves the custom model prediction API endpoint.
+**Flask:** Serves the custom model prediction API endpoint.\
+Initial EDA and model development can be viewed here: https://github.com/brianfdo/recommender-system-notebook
 
 ### Recommendations
 #### Collaberative Filtering Recommendation System
